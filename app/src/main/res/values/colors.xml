@@ -2,4 +2,10 @@
 <resources>
     <color name="black">#FF000000</color>
     <color name="white">#FFFFFFFF</color>
+    <color name="primary_color">#8013ec</color>
+    <color name="background_color">#1a1122</color>
+    <color name="input_background_color">#362348</color>
+    <color name="placeholder_color">#ad92c9</color>
+    <color name="gray_text_color">#a0a0a0</color>
+    <color name="separator_color">#4a4a4a</color>
 </resources>

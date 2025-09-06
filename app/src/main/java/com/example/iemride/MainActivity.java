@@ -1,8 +1,9 @@
 package com.example.iemride;
 
+import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
-import android.widget.VideoView;
+import android.view.View;
 
 import androidx.activity.EdgeToEdge;
 import androidx.appcompat.app.AppCompatActivity;
@@ -10,9 +11,14 @@ import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
 
+import androidx.media3.common.MediaItem;
+import androidx.media3.exoplayer.ExoPlayer;
+import androidx.media3.ui.PlayerView;
+
 public class MainActivity extends AppCompatActivity {
 
-    private VideoView videoView;
+    private ExoPlayer player;
+    private PlayerView playerView;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -25,33 +31,57 @@ public class MainActivity extends AppCompatActivity {
             return insets;
         });
 
-        videoView = findViewById(R.id.videoView);
-        // Build the video URI from the raw resource
+        playerView = findViewById(R.id.videoView);
+    }
+
+    @Override
+    protected void onStart() {
+        super.onStart();
+        // Initialize the player
+        player = new ExoPlayer.Builder(this).build();
+        playerView.setPlayer(player);
+
+        // Build the media item from the raw resource
         String videoPath = "android.resource://" + getPackageName() + "/" + R.raw.iemridevd;
         Uri uri = Uri.parse(videoPath);
-        videoView.setVideoURI(uri);
+        MediaItem mediaItem = MediaItem.fromUri(uri);
 
-        // Set a listener to loop the video
-        videoView.setOnCompletionListener(mediaPlayer -> {
-            videoView.start(); // Restart the video when it completes
-        });
+        // Set the media item and prepare the player
+        player.setMediaItem(mediaItem);
+        player.prepare();
 
-        videoView.start(); // Start the video
+        // Set the player to loop the video indefinitely
+        player.setRepeatMode(ExoPlayer.REPEAT_MODE_ALL);
+
+        player.play(); // Start playback automatically
     }
 
     @Override
     protected void onResume() {
         super.onResume();
-        // Resume video playback when the activity comes to the foreground
-        videoView.start();
+        if (player != null) {
+            player.play();
+        }
     }
 
     @Override
     protected void onPause() {
         super.onPause();
-        // Pause video playback when the activity is not in the foreground
-        if (videoView.isPlaying()) {
-            videoView.pause();
+        if (player != null) {
+            player.pause();
         }
+    }
+
+    @Override
+    protected void onStop() {
+        super.onStop();
+        if (player != null) {
+            player.release();
+            player = null;
+        }
+    }
+    public void login (View v){
+        Intent i = new Intent(MainActivity.this,Loginactivity.class);
+        startActivity(i);
     }
 }
