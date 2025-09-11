@@ -6,7 +6,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="@color/background_color"
-    tools:context=".Loginactivity">
+    tools:context=".Signupactivity">
 
     <androidx.constraintlayout.widget.ConstraintLayout
         android:id="@+id/headerLayout"
@@ -62,7 +62,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:fontFamily="sans-serif-smallcaps"
-            android:text="Enter your email and password"
+            android:text="Create your account"
             android:textColor="@color/white"
             android:textSize="34sp"
             android:textStyle="bold" />
@@ -103,28 +103,17 @@
         app:layout_constraintBottom_toBottomOf="parent">
 
         <Button
-            android:id="@+id/loginButton"
+            android:id="@+id/signUpButton"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:background="@drawable/rounded_button_background"
             android:backgroundTint="@color/primary_color"
             android:paddingVertical="16dp"
-            android:text="Login"
+            android:text="Sign Up"
             android:textColor="@color/white"
             android:textSize="16sp"
             android:textStyle="bold"
             tools:ignore="UnusedAttribute" />
-
-        <TextView
-            android:id="@+id/signUpTextView"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="16dp"
-            android:gravity="center"
-            android:text="Don't have an account? Sign Up"
-            android:textColor="@color/gray_text_color"
-            android:textSize="14sp" />
-
     </LinearLayout>
 
 </androidx.constraintlayout.widget.ConstraintLayout>

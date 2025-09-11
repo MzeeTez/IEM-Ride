@@ -12,6 +12,9 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.IEMRide">
         <activity
+            android:name=".Signupactivity"
+            android:exported="false" />
+        <activity
             android:name=".Loginactivity"
             android:exported="false" />
         <activity

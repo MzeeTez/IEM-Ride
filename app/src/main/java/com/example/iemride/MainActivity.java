@@ -4,6 +4,7 @@ import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
 import android.view.View;
+import android.widget.Button;
 
 import androidx.activity.EdgeToEdge;
 import androidx.appcompat.app.AppCompatActivity;
@@ -15,10 +16,15 @@ import androidx.media3.common.MediaItem;
 import androidx.media3.exoplayer.ExoPlayer;
 import androidx.media3.ui.PlayerView;
 
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
+
 public class MainActivity extends AppCompatActivity {
 
     private ExoPlayer player;
     private PlayerView playerView;
+    private FirebaseAuth mAuth;
+    private Button mainButton;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -32,6 +38,23 @@ public class MainActivity extends AppCompatActivity {
         });
 
         playerView = findViewById(R.id.videoView);
+        mainButton = findViewById(R.id.getStartedButton);
+        mAuth = FirebaseAuth.getInstance();
+    }
+
+    private void updateUI(FirebaseUser user) {
+        if (user != null) {
+            // User is signed in
+            mainButton.setText("Logout");
+            mainButton.setOnClickListener(v -> {
+                mAuth.signOut();
+                updateUI(null); // Go back to signed-out state
+            });
+        } else {
+            // User is signed out
+            mainButton.setText("Get Started");
+            mainButton.setOnClickListener(this::login); // Point back to the login method
+        }
     }
 
     @Override
@@ -54,6 +77,10 @@ public class MainActivity extends AppCompatActivity {
         player.setRepeatMode(ExoPlayer.REPEAT_MODE_ALL);
 
         player.play(); // Start playback automatically
+
+        // Check if user is signed in (non-null) and update UI accordingly.
+        FirebaseUser currentUser = mAuth.getCurrentUser();
+        updateUI(currentUser);
     }
 
     @Override
@@ -62,6 +89,8 @@ public class MainActivity extends AppCompatActivity {
         if (player != null) {
             player.play();
         }
+        // Update UI in case user logs in and comes back to this activity
+        updateUI(mAuth.getCurrentUser());
     }
 
     @Override
@@ -80,8 +109,10 @@ public class MainActivity extends AppCompatActivity {
             player = null;
         }
     }
+
+    // This method is called by the "Get Started" button when user is not logged in
     public void login (View v){
-        Intent i = new Intent(MainActivity.this,Loginactivity.class);
+        Intent i = new Intent(MainActivity.this, Loginactivity.class);
         startActivity(i);
     }
 }
