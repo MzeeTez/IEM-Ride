@@ -82,7 +82,10 @@ public class Loginactivity extends AppCompatActivity {
                     public void onComplete(@NonNull Task<AuthResult> task) {
                         if (task.isSuccessful()) {
                             Toast.makeText(getApplicationContext(), "Login successful!", Toast.LENGTH_LONG).show();
-                            Intent intent = new Intent(Loginactivity.this, MainActivity.class);
+                            // Go to HomeActivity after successful login
+                            Intent intent = new Intent(Loginactivity.this, HomeActivity.class);
+                            // Clear back stack so the user cannot navigate back to the login/signup flow
+                            intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
                             startActivity(intent);
                             finish();
                         } else {

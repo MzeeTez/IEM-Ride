@@ -1,0 +1,188 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.cardview.widget.CardView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_marginHorizontal="16dp"
+    android:layout_marginVertical="8dp"
+    app:cardBackgroundColor="@color/input_background_color"
+    app:cardCornerRadius="12dp"
+    app:cardElevation="4dp">
+
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:padding="16dp">
+
+        <ImageView
+            android:id="@+id/avatarImageView"
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:layout_alignParentStart="true"
+            android:layout_alignParentTop="true"
+            android:src="@drawable/ic_avatar_placeholder" />
+
+        <LinearLayout
+            android:id="@+id/driverInfoLayout"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="12dp"
+            android:layout_toEndOf="@id/avatarImageView"
+            android:orientation="vertical">
+
+            <TextView
+                android:id="@+id/driverNameTextView"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textColor="@color/white"
+                android:textSize="18sp"
+                android:textStyle="bold"
+                tools:text="Rohan Sharma" />
+
+            <LinearLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="4dp"
+                android:gravity="center_vertical"
+                android:orientation="horizontal">
+
+                <ImageView
+                    android:layout_width="16dp"
+                    android:layout_height="16dp"
+                    android:src="@drawable/ic_star" />
+
+                <TextView
+                    android:id="@+id/ratingTextView"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="4dp"
+                    android:textColor="@color/white"
+                    android:textSize="14sp"
+                    tools:text="4.9" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="8dp"
+                    android:layout_marginEnd="8dp"
+                    android:text="•"
+                    android:textColor="@color/placeholder_color" />
+
+                <TextView
+                    android:id="@+id/vehicleModelTextView"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:textColor="@color/placeholder_color"
+                    android:textSize="14sp"
+                    tools:text="Maruti Swift" />
+            </LinearLayout>
+        </LinearLayout>
+
+        <TextView
+            android:id="@+id/departureTimeTextView"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_below="@id/avatarImageView"
+            android:layout_marginTop="16dp"
+            android:textColor="@color/placeholder_color"
+            tools:text="10:00 AM" />
+
+        <TextView
+            android:id="@+id/departureLocationTextView"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_below="@id/departureTimeTextView"
+            android:textColor="@color/white"
+            android:textSize="16sp"
+            tools:text="Kolkata" />
+
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_alignTop="@id/departureLocationTextView"
+            android:layout_alignBottom="@id/departureLocationTextView"
+            android:layout_marginStart="8dp"
+            android:layout_marginEnd="8dp"
+            android:layout_toStartOf="@+id/destinationLocationTextView"
+            android:layout_toEndOf="@id/departureLocationTextView"
+            android:gravity="center"
+            android:orientation="horizontal">
+
+            <View
+                android:layout_width="0dp"
+                android:layout_height="1dp"
+                android:layout_weight="1"
+                android:background="@color/separator_color" />
+
+            <ImageView
+                android:layout_width="20dp"
+                android:layout_height="20dp"
+                android:layout_marginHorizontal="8dp"
+                android:src="@drawable/ic_car_connector" />
+
+            <View
+                android:layout_width="0dp"
+                android:layout_height="1dp"
+                android:layout_weight="1"
+                android:background="@color/separator_color" />
+
+        </LinearLayout>
+
+        <TextView
+            android:id="@+id/destinationTimeTextView"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_below="@id/avatarImageView"
+            android:layout_alignParentEnd="true"
+            android:layout_marginTop="16dp"
+            android:textColor="@color/placeholder_color"
+            tools:text="01:00 PM" />
+
+        <TextView
+            android:id="@+id/destinationLocationTextView"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_below="@id/destinationTimeTextView"
+            android:layout_alignParentEnd="true"
+            android:textColor="@color/white"
+            android:textSize="16sp"
+            tools:text="Durgapur" />
+
+        <LinearLayout
+            android:id="@+id/priceLayout"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_below="@id/departureLocationTextView"
+            android:layout_marginTop="16dp"
+            android:orientation="vertical">
+
+            <TextView
+                android:id="@+id/priceTextView"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textColor="@color/white"
+                android:textSize="22sp"
+                android:textStyle="bold"
+                tools:text="₹300" />
+
+            <TextView
+                android:id="@+id/seatsRemainingTextView"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textColor="#E57373"
+                android:textStyle="bold"
+                tools:text="2 seats remaining" />
+        </LinearLayout>
+
+        <Button
+            android:id="@+id/bookButton"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_below="@id/destinationLocationTextView"
+            android:layout_alignParentEnd="true"
+            android:layout_marginTop="16dp"
+            android:backgroundTint="@color/primary_color"
+            android:text="Book" />
+    </RelativeLayout>
+</androidx.cardview.widget.CardView>

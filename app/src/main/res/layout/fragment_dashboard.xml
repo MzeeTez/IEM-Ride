@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:background="@color/background_color"
+    tools:context=".DashboardFragment">
+
+    <!-- Include the custom app bar at the top -->
+    <include
+        android:id="@+id/appBar"
+        layout="@layout/app_bar_layout" />
+
+    <!-- "Rides Near You" Header -->
+    <TextView
+        android:id="@+id/ridesHeaderTextView"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/appBar"
+        android:layout_marginStart="16dp"
+        android:layout_marginTop="16dp"
+        android:layout_marginBottom="8dp"
+        android:text="Rides Near You"
+        android:textColor="@color/white"
+        android:textSize="24sp"
+        android:textStyle="bold" />
+
+    <!-- RecyclerView positioned below the header -->
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/ridesRecyclerView"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_below="@id/ridesHeaderTextView"
+        app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
+        tools:listitem="@layout/ride_item" />
+
+    <!-- Empty View centered in the layout -->
+    <TextView
+        android:id="@+id/emptyView"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_centerInParent="true"
+        android:text="No rides available right now."
+        android:textColor="@color/gray_text_color"
+        android:textSize="18sp"
+        android:visibility="gone" />
+
+</RelativeLayout>

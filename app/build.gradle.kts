@@ -30,6 +30,10 @@ android {
         sourceCompatibility = JavaVersion.VERSION_11
         targetCompatibility = JavaVersion.VERSION_11
     }
+    // Add viewBinding
+    buildFeatures {
+        viewBinding = true
+    }
 }
 
 dependencies {
@@ -48,5 +52,8 @@ dependencies {
     // Firebase
     implementation(platform("com.google.firebase:firebase-bom:32.7.2"))
     implementation("com.google.firebase:firebase-auth")
-    // The line for firebase-core has been removed as it's included by firebase-auth
+    // Add Firestore dependency
+    implementation("com.google.firebase:firebase-firestore")
+    implementation("de.hdodenhof:circleimageview:3.1.0")
+
 }
