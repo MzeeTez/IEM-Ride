@@ -76,6 +76,9 @@ public class Loginactivity extends AppCompatActivity {
             return;
         }
 
+        // Disable the login button to prevent multiple clicks
+        loginButton.setEnabled(false);
+
         mAuth.signInWithEmailAndPassword(email, password)
                 .addOnCompleteListener(new OnCompleteListener<AuthResult>() {
                     @Override
@@ -90,6 +93,8 @@ public class Loginactivity extends AppCompatActivity {
                             finish();
                         } else {
                             Toast.makeText(getApplicationContext(), "Login failed! Please try again later", Toast.LENGTH_LONG).show();
+                            // Re-enable the login button if login fails
+                            loginButton.setEnabled(true);
                         }
                     }
                 });

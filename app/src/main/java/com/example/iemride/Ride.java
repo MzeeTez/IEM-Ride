@@ -1,10 +1,14 @@
 package com.example.iemride;
 
 import com.google.firebase.database.ServerValue;
+import java.io.Serializable;
 import java.util.HashMap;
 import java.util.Map;
 
-public class Ride {
+public class Ride implements Serializable {
+    // Adding a unique ID for serialization
+    private static final long serialVersionUID = 1L;
+
     // New Fields for Driver Info
     private String driverName;
     private String vehicleModel;

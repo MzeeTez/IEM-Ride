@@ -1,5 +1,6 @@
 package com.example.iemride;
 
+import android.content.Intent;
 import android.view.LayoutInflater;
 import android.view.ViewGroup;
 import androidx.annotation.NonNull;
@@ -27,6 +28,14 @@ public class RideAdapter extends RecyclerView.Adapter<RideAdapter.RideViewHolder
     public void onBindViewHolder(@NonNull RideViewHolder holder, int position) {
         Ride ride = rideList.get(position);
         holder.bind(ride);
+
+        // Set OnClickListener for the book button
+        holder.binding.bookButton.setOnClickListener(v -> {
+            Intent intent = new Intent(v.getContext(), DetailsActivity.class);
+            // Pass the entire Ride object to the DetailsActivity
+            intent.putExtra("ride", ride);
+            v.getContext().startActivity(intent);
+        });
     }
 
     @Override

@@ -59,6 +59,9 @@ public class OfferRideFragment extends Fragment {
             return;
         }
 
+        // Disable the button to prevent multiple clicks
+        binding.publishRideButton.setEnabled(false);
+
         try {
             int seats = Integer.parseInt(seatsStr);
             double price = Double.parseDouble(priceStr);
@@ -73,6 +76,8 @@ public class OfferRideFragment extends Fragment {
 
         } catch (NumberFormatException e) {
             Toast.makeText(getContext(), "Please enter valid numbers for seats and price", Toast.LENGTH_SHORT).show();
+            // Re-enable the button if there's an error
+            binding.publishRideButton.setEnabled(true);
         }
     }
 
@@ -107,10 +112,14 @@ public class OfferRideFragment extends Fragment {
                             .addOnSuccessListener(aVoid -> {
                                 Toast.makeText(getContext(), "Ride published successfully!", Toast.LENGTH_SHORT).show();
                                 clearFields();
+                                // Re-enable the button on success
+                                binding.publishRideButton.setEnabled(true);
                             })
                             .addOnFailureListener(e -> {
                                 Log.e(TAG, "Error publishing ride", e);
                                 Toast.makeText(getContext(), "Error publishing ride: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                                // Re-enable the button on failure
+                                binding.publishRideButton.setEnabled(true);
                             });
                 });
     }
