@@ -2,6 +2,7 @@ package com.example.iemride;
 
 import android.os.Bundle;
 import android.text.TextUtils;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -12,13 +13,18 @@ import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 import com.example.iemride.databinding.FragmentOfferRideBinding;
 import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
 
 public class OfferRideFragment extends Fragment {
 
     private FragmentOfferRideBinding binding;
+    private DatabaseReference ridesRef;
     private FirebaseFirestore db;
     private FirebaseAuth mAuth;
+    private static final String TAG = "OfferRideFragment";
 
     @Nullable
     @Override
@@ -31,7 +37,10 @@ public class OfferRideFragment extends Fragment {
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
 
-        db = FirebaseFirestore.getInstance();
+        // Initialize Firebase services
+        FirebaseDatabase database = FirebaseDatabase.getInstance();
+        ridesRef = database.getReference("rides");
+        db = FirebaseFirestore.getInstance(); // Still use Firestore for user data
         mAuth = FirebaseAuth.getInstance();
 
         binding.publishRideButton.setOnClickListener(v -> publishRide());
@@ -44,36 +53,66 @@ public class OfferRideFragment extends Fragment {
         String seatsStr = binding.seatsEditText.getText().toString().trim();
         String priceStr = binding.priceEditText.getText().toString().trim();
 
-        if (TextUtils.isEmpty(departure) || TextUtils.isEmpty(destination) || TextUtils.isEmpty(time) || TextUtils.isEmpty(seatsStr) || TextUtils.isEmpty(priceStr)) {
+        if (TextUtils.isEmpty(departure) || TextUtils.isEmpty(destination) ||
+                TextUtils.isEmpty(time) || TextUtils.isEmpty(seatsStr) || TextUtils.isEmpty(priceStr)) {
             Toast.makeText(getContext(), "Please fill all fields", Toast.LENGTH_SHORT).show();
             return;
         }
 
-        // === FIX IS HERE ===
-        // Add placeholder data for the new fields.
-        // You can get this data from the user's profile later.
-        String driverName = "Aditya Singh"; // Placeholder
-        String vehicleModel = "Maruti Swift"; // Placeholder
-        double driverRating = 4.9; // Placeholder
+        try {
+            int seats = Integer.parseInt(seatsStr);
+            double price = Double.parseDouble(priceStr);
+            String userId = mAuth.getCurrentUser().getUid();
 
-        int seats = Integer.parseInt(seatsStr);
-        double price = Double.parseDouble(priceStr);
-        String userId = mAuth.getCurrentUser().getUid();
+            int selectedVehicleId = binding.vehicleTypeRadioGroup.getCheckedRadioButtonId();
+            RadioButton selectedRadioButton = getView().findViewById(selectedVehicleId);
+            String vehicleType = selectedRadioButton.getText().toString();
 
-        int selectedVehicleId = binding.vehicleTypeRadioGroup.getCheckedRadioButtonId();
-        RadioButton selectedRadioButton = getView().findViewById(selectedVehicleId);
-        String vehicleType = selectedRadioButton.getText().toString();
+            // Get user profile data from Firestore to populate driver info
+            getUserProfileAndPublishRide(departure, destination, time, vehicleType, seats, price, userId);
 
-        // Create a new Ride object with ALL the required fields
-        Ride ride = new Ride(driverName, vehicleModel, driverRating, departure, destination, time, vehicleType, seats, price, userId);
+        } catch (NumberFormatException e) {
+            Toast.makeText(getContext(), "Please enter valid numbers for seats and price", Toast.LENGTH_SHORT).show();
+        }
+    }
 
-        db.collection("rides")
-                .add(ride)
-                .addOnSuccessListener(documentReference -> {
-                    Toast.makeText(getContext(), "Ride published successfully!", Toast.LENGTH_SHORT).show();
-                    clearFields();
-                })
-                .addOnFailureListener(e -> Toast.makeText(getContext(), "Error publishing ride: " + e.getMessage(), Toast.LENGTH_SHORT).show());
+    private void getUserProfileAndPublishRide(String departure, String destination, String time,
+                                              String vehicleType, int seats, double price, String userId) {
+
+        db.collection("users").document(userId).get()
+                .addOnCompleteListener(task -> {
+                    String driverName = "User"; // Default name
+                    String vehicleModel = "N/A"; // Default vehicle
+                    double driverRating = 4.5; // Default rating
+
+                    if (task.isSuccessful() && task.getResult() != null) {
+                        DocumentSnapshot document = task.getResult();
+                        if (document.exists()) {
+                            User user = document.toObject(User.class);
+                            if (user != null) {
+                                driverName = user.getName() != null ? user.getName() : "User";
+                                vehicleModel = user.getVehicleModel() != null ? user.getVehicleModel() : "N/A";
+                                // You can add a rating field to User model later
+                            }
+                        }
+                    }
+
+                    // Create a new Ride object
+                    Ride ride = new Ride(driverName, vehicleModel, driverRating, departure,
+                            destination, time, vehicleType, seats, price, userId);
+
+                    // Push to Realtime Database
+                    DatabaseReference newRideRef = ridesRef.push();
+                    newRideRef.setValue(ride.toMap())
+                            .addOnSuccessListener(aVoid -> {
+                                Toast.makeText(getContext(), "Ride published successfully!", Toast.LENGTH_SHORT).show();
+                                clearFields();
+                            })
+                            .addOnFailureListener(e -> {
+                                Log.e(TAG, "Error publishing ride", e);
+                                Toast.makeText(getContext(), "Error publishing ride: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                            });
+                });
     }
 
     private void clearFields() {
