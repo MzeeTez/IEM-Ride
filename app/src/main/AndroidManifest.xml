@@ -2,43 +2,102 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools">
 
+    <!-- Permissions for Internet, Network State, Location, Calling, and Storage -->
+    <uses-feature
+        android:name="android.hardware.telephony"
+        android:required="false" />
+
+    <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
+    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
+    <uses-permission android:name="android.permission.CALL_PHONE" />
+    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
+    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
+    <uses-permission android:name="android.permission.WAKE_LOCK" />
+
     <application
         android:allowBackup="true"
         android:dataExtractionRules="@xml/data_extraction_rules"
         android:fullBackupContent="@xml/backup_rules"
-        android:icon="@mipmap/ic_launcher"
+        android:icon="@drawable/ic_car_connector"
         android:label="@string/app_name"
-        android:roundIcon="@mipmap/ic_launcher_round"
+        android:roundIcon="@drawable/ic_car_connector"
         android:supportsRtl="true"
-        android:theme="@style/Theme.IEMRide">
+        android:theme="@style/Theme.IEMRide"
+        tools:replace="android:allowBackup"
+        tools:targetApi="31">
+
+        <!-- Main Launcher Activity -->
         <activity
-            android:name=".DetailsActivity"
+            android:name=".MainActivity"
+            android:exported="true"
+            android:theme="@style/Theme.IEMRide">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
+
+        <!-- Authentication Activities -->
+        <activity
+            android:name=".Loginactivity"
+            android:exported="false" />
+        <activity
+            android:name=".Signupactivity"
+            android:exported="false" />
+
+        <!-- Main App Activities -->
+        <activity
+            android:name=".HomeActivity"
             android:exported="false" />
         <activity
             android:name=".EditProfileActivity"
             android:exported="false" />
         <activity
-            android:name=".HomeActivity"
+            android:name=".DetailsActivity"
             android:exported="false" />
+
+        <!-- Ride Request Feature Activities -->
         <activity
-            android:name=".Signupactivity"
-            android:exported="false" />
+            android:name=".RequestStatusActivity"
+            android:exported="false"
+            android:parentActivityName=".HomeActivity"
+            android:theme="@style/Theme.IEMRide" />
         <activity
-            android:name=".Loginactivity"
-            android:exported="false" />
+            android:name=".RideRequestsActivity"
+            android:exported="false"
+            android:parentActivityName=".HomeActivity"
+            android:theme="@style/Theme.IEMRide" />
+
+        <!-- Maps Activity for OSM integration -->
         <activity
-            android:name=".MainActivity"
-            android:exported="true">
+            android:name=".MapsActivity"
+            android:exported="false"
+            android:parentActivityName=".HomeActivity"
+            android:theme="@style/Theme.IEMRide" />
+
+        <!-- FCM Service for push notifications -->
+        <service
+            android:name=".FCMNotificationService"
+            android:exported="false">
             <intent-filter>
-                <action android:name="android.intent.action.MAIN" />
-
-                <category android:name="android.intent.category.LAUNCHER" />
+                <action android:name="com.google.firebase.MESSAGING_EVENT" />
             </intent-filter>
-        </activity>
+        </service>
 
+        <!-- Default FCM notification icon, color, and channel ID -->
         <meta-data
-            android:name="preloaded_fonts"
-            android:resource="@array/preloaded_fonts" />
+            android:name="com.google.firebase.messaging.default_notification_icon"
+            android:resource="@drawable/ic_car_connector" />
+        <meta-data
+            android:name="com.google.firebase.messaging.default_notification_color"
+            android:resource="@color/primary_color" />
+        <meta-data
+            android:name="com.google.firebase.messaging.default_notification_channel_id"
+            android:value="ride_requests_channel" />
+
     </application>
 
 </manifest>
+
