@@ -3,7 +3,7 @@ package com.example.iemride;
 import android.content.Intent;
 import android.os.Bundle;
 import android.util.Log;
-import android.view.View; // Import View
+import android.view.View;
 import android.widget.Toast;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
@@ -26,13 +26,13 @@ public class RideRequestsActivity extends AppCompatActivity implements RideReque
 
     private ActivityRideRequestsBinding binding;
     private DatabaseReference requestsRef;
+    private DatabaseReference ridesRef;
     private RideRequestsAdapter adapter;
     private List<RideRequest> requestList;
-
-    // --- FIX 1: Add a Query member variable to properly remove the listener later ---
     private Query requestsQuery;
     private ValueEventListener requestsListener;
     private String currentDriverId;
+    private boolean isProcessingRequest = false;
     private static final String TAG = "RideRequestsActivity";
 
     @Override
@@ -43,6 +43,7 @@ public class RideRequestsActivity extends AppCompatActivity implements RideReque
 
         currentDriverId = FirebaseAuth.getInstance().getCurrentUser().getUid();
         requestsRef = FirebaseDatabase.getInstance().getReference("rideRequests");
+        ridesRef = FirebaseDatabase.getInstance().getReference("rides");
 
         setupRecyclerView();
         loadRideRequests();
@@ -86,7 +87,7 @@ public class RideRequestsActivity extends AppCompatActivity implements RideReque
                         Long timestamp2 = getTimestampAsLong(r2.getTimestamp());
 
                         if (timestamp1 == null && timestamp2 == null) return 0;
-                        if (timestamp1 == null) return 1; // Treat nulls as older
+                        if (timestamp1 == null) return 1;
                         if (timestamp2 == null) return -1;
 
                         return timestamp2.compareTo(timestamp1); // Descending order
@@ -128,29 +129,88 @@ public class RideRequestsActivity extends AppCompatActivity implements RideReque
 
     @Override
     public void onAcceptRequest(RideRequest request) {
-        updateRequestStatus(request.getRequestId(), "accepted");
-        Toast.makeText(this, "Request accepted! Opening maps...", Toast.LENGTH_SHORT).show();
+        if (isProcessingRequest) {
+            Toast.makeText(this, "Please wait, processing previous request...", Toast.LENGTH_SHORT).show();
+            return;
+        }
 
-        // Send FCM notification to passenger
-        NotificationHelper.sendRequestStatusNotification(request.getFromUserId(), "accepted", request.getRequestId());
+        isProcessingRequest = true;
 
-        // Open maps for driver
-        Intent intent = new Intent(this, MapsActivity.class);
-        intent.putExtra("requestId", request.getRequestId());
-        intent.putExtra("rideRequest", request);
-        intent.putExtra("isDriver", true); // Driver perspective
-        startActivity(intent);
+        // First check if seats are available in the ride
+        ridesRef.child(request.getRideId()).addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot rideSnapshot) {
+                if (rideSnapshot.exists()) {
+                    Integer availableSeats = rideSnapshot.child("seatsAvailable").getValue(Integer.class);
+
+                    if (availableSeats != null && availableSeats > 0) {
+                        // Reduce seat count and accept request
+                        int newSeatCount = availableSeats - 1;
+
+                        ridesRef.child(request.getRideId()).child("seatsAvailable").setValue(newSeatCount)
+                                .addOnSuccessListener(aVoid -> {
+                                    // Update request status to accepted
+                                    updateRequestStatus(request.getRequestId(), "accepted");
+
+                                    Toast.makeText(RideRequestsActivity.this,
+                                            "Request accepted! Seat reserved. Opening maps...", Toast.LENGTH_SHORT).show();
+
+                                    // Send FCM notification to passenger
+                                    NotificationHelper.sendRequestStatusNotification(
+                                            request.getFromUserId(), "accepted", request.getRequestId());
+
+                                    // Open maps for driver
+                                    Intent intent = new Intent(RideRequestsActivity.this, MapsActivity.class);
+                                    intent.putExtra("requestId", request.getRequestId());
+                                    intent.putExtra("rideRequest", request);
+                                    intent.putExtra("isDriver", true);
+                                    startActivity(intent);
+
+                                    isProcessingRequest = false;
+                                })
+                                .addOnFailureListener(e -> {
+                                    Log.e(TAG, "Error reducing seat count", e);
+                                    Toast.makeText(RideRequestsActivity.this,
+                                            "Error processing request", Toast.LENGTH_SHORT).show();
+                                    isProcessingRequest = false;
+                                });
+                    } else {
+                        Toast.makeText(RideRequestsActivity.this,
+                                "No seats available for this ride", Toast.LENGTH_SHORT).show();
+                        isProcessingRequest = false;
+                    }
+                } else {
+                    Toast.makeText(RideRequestsActivity.this,
+                            "Ride not found", Toast.LENGTH_SHORT).show();
+                    isProcessingRequest = false;
+                }
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError databaseError) {
+                Log.e(TAG, "Error checking ride availability", databaseError.toException());
+                Toast.makeText(RideRequestsActivity.this,
+                        "Error checking ride availability", Toast.LENGTH_SHORT).show();
+                isProcessingRequest = false;
+            }
+        });
     }
 
     @Override
     public void onRejectRequest(RideRequest request) {
+        if (isProcessingRequest) {
+            Toast.makeText(this, "Please wait, processing previous request...", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        isProcessingRequest = true;
         updateRequestStatus(request.getRequestId(), "rejected");
         Toast.makeText(this, "Request rejected", Toast.LENGTH_SHORT).show();
 
         // Send FCM notification to passenger
         NotificationHelper.sendRequestStatusNotification(request.getFromUserId(), "rejected", request.getRequestId());
 
-        // --- FIX 2: Removed the duplicated, incomplete line of code that was here ---
+        isProcessingRequest = false;
     }
 
     private void updateRequestStatus(String requestId, String status) {
@@ -165,9 +225,8 @@ public class RideRequestsActivity extends AppCompatActivity implements RideReque
     @Override
     protected void onDestroy() {
         super.onDestroy();
-        // --- FIX 3: Remove listener from the Query object, not the DatabaseReference, to prevent memory leaks ---
         if (requestsQuery != null && requestsListener != null) {
             requestsQuery.removeEventListener(requestsListener);
         }
-    }
-}
+        isProcessingRequest = false;
+    }}

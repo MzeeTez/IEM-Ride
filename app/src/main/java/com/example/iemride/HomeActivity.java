@@ -31,10 +31,11 @@ public class HomeActivity extends AppCompatActivity {
                     selectedFragment = new DashboardFragment();
                 } else if (itemId == R.id.nav_offer_ride) {
                     selectedFragment = new OfferRideFragment();
+                } else if (itemId == R.id.nav_my_rides) {
+                    selectedFragment = new MyRidesFragment();
                 } else if (itemId == R.id.nav_profile) {
                     selectedFragment = new ProfileFragment();
                 }
-                // You can add 'else if' blocks for "My Rides" when you create that fragment
 
                 if (selectedFragment != null) {
                     getSupportFragmentManager().beginTransaction().replace(R.id.fragment_container,

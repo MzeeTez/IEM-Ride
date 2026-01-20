@@ -24,6 +24,7 @@ public class OfferRideFragment extends Fragment {
     private DatabaseReference ridesRef;
     private FirebaseFirestore db;
     private FirebaseAuth mAuth;
+    private boolean isPublishingRide = false;
     private static final String TAG = "OfferRideFragment";
 
     @Nullable
@@ -43,7 +44,11 @@ public class OfferRideFragment extends Fragment {
         db = FirebaseFirestore.getInstance(); // Still use Firestore for user data
         mAuth = FirebaseAuth.getInstance();
 
-        binding.publishRideButton.setOnClickListener(v -> publishRide());
+        binding.publishRideButton.setOnClickListener(v -> {
+            if (!isPublishingRide) {
+                publishRide();
+            }
+        });
     }
 
     private void publishRide() {
@@ -59,15 +64,42 @@ public class OfferRideFragment extends Fragment {
             return;
         }
 
-        // Disable the button to prevent multiple clicks
+        // Check if already publishing
+        if (isPublishingRide) {
+            Toast.makeText(getContext(), "Please wait, publishing ride...", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        // Set publishing flag and disable button
+        isPublishingRide = true;
         binding.publishRideButton.setEnabled(false);
+        binding.publishRideButton.setText("Publishing...");
 
         try {
             int seats = Integer.parseInt(seatsStr);
             double price = Double.parseDouble(priceStr);
+
+            if (seats <= 0) {
+                Toast.makeText(getContext(), "Please enter valid number of seats", Toast.LENGTH_SHORT).show();
+                resetPublishButton();
+                return;
+            }
+
+            if (price <= 0) {
+                Toast.makeText(getContext(), "Please enter valid price", Toast.LENGTH_SHORT).show();
+                resetPublishButton();
+                return;
+            }
+
             String userId = mAuth.getCurrentUser().getUid();
 
             int selectedVehicleId = binding.vehicleTypeRadioGroup.getCheckedRadioButtonId();
+            if (selectedVehicleId == -1) {
+                Toast.makeText(getContext(), "Please select a vehicle type", Toast.LENGTH_SHORT).show();
+                resetPublishButton();
+                return;
+            }
+
             RadioButton selectedRadioButton = getView().findViewById(selectedVehicleId);
             String vehicleType = selectedRadioButton.getText().toString();
 
@@ -76,8 +108,7 @@ public class OfferRideFragment extends Fragment {
 
         } catch (NumberFormatException e) {
             Toast.makeText(getContext(), "Please enter valid numbers for seats and price", Toast.LENGTH_SHORT).show();
-            // Re-enable the button if there's an error
-            binding.publishRideButton.setEnabled(true);
+            resetPublishButton();
         }
     }
 
@@ -110,32 +141,52 @@ public class OfferRideFragment extends Fragment {
                     DatabaseReference newRideRef = ridesRef.push();
                     newRideRef.setValue(ride.toMap())
                             .addOnSuccessListener(aVoid -> {
-                                Toast.makeText(getContext(), "Ride published successfully!", Toast.LENGTH_SHORT).show();
-                                clearFields();
-                                // Re-enable the button on success
-                                binding.publishRideButton.setEnabled(true);
+                                if (getContext() != null) {
+                                    Toast.makeText(getContext(), "Ride published successfully!", Toast.LENGTH_SHORT).show();
+                                    clearFields();
+                                    resetPublishButton();
+                                }
                             })
                             .addOnFailureListener(e -> {
                                 Log.e(TAG, "Error publishing ride", e);
-                                Toast.makeText(getContext(), "Error publishing ride: " + e.getMessage(), Toast.LENGTH_SHORT).show();
-                                // Re-enable the button on failure
-                                binding.publishRideButton.setEnabled(true);
+                                if (getContext() != null) {
+                                    Toast.makeText(getContext(), "Error publishing ride: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                                    resetPublishButton();
+                                }
                             });
+                })
+                .addOnFailureListener(e -> {
+                    Log.e(TAG, "Error getting user profile", e);
+                    if (getContext() != null) {
+                        Toast.makeText(getContext(), "Error getting user profile", Toast.LENGTH_SHORT).show();
+                        resetPublishButton();
+                    }
                 });
     }
 
+    private void resetPublishButton() {
+        isPublishingRide = false;
+        if (binding != null) {
+            binding.publishRideButton.setEnabled(true);
+            binding.publishRideButton.setText("Publish Ride");
+        }
+    }
+
     private void clearFields() {
-        binding.departureEditText.setText("");
-        binding.destinationEditText.setText("");
-        binding.timeEditText.setText("");
-        binding.seatsEditText.setText("");
-        binding.priceEditText.setText("");
-        binding.carRadioButton.setChecked(true);
+        if (binding != null) {
+            binding.departureEditText.setText("");
+            binding.destinationEditText.setText("");
+            binding.timeEditText.setText("");
+            binding.seatsEditText.setText("");
+            binding.priceEditText.setText("");
+            binding.carRadioButton.setChecked(true);
+        }
     }
 
     @Override
     public void onDestroyView() {
         super.onDestroyView();
+        isPublishingRide = false;
         binding = null;
     }
 }

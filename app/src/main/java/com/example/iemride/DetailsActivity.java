@@ -9,8 +9,11 @@ import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import com.example.iemride.databinding.ActivityDetailsBinding;
 import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.ValueEventListener;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
 import java.util.Locale;
@@ -20,8 +23,10 @@ public class DetailsActivity extends AppCompatActivity {
     private ActivityDetailsBinding binding;
     private Ride currentRide;
     private DatabaseReference requestsRef;
+    private DatabaseReference ridesRef;
     private FirebaseFirestore db;
     private FirebaseAuth mAuth;
+    private boolean isRequestInProgress = false;
     private static final String TAG = "DetailsActivity";
 
     @Override
@@ -32,22 +37,73 @@ public class DetailsActivity extends AppCompatActivity {
 
         // Initialize Firebase
         requestsRef = FirebaseDatabase.getInstance().getReference("rideRequests");
+        ridesRef = FirebaseDatabase.getInstance().getReference("rides");
         db = FirebaseFirestore.getInstance();
         mAuth = FirebaseAuth.getInstance();
 
         currentRide = (Ride) getIntent().getSerializableExtra("ride");
 
         if (currentRide != null) {
-            binding.driverNameTextView.setText(currentRide.getDriverName());
-            binding.vehicleModelTextView.setText(currentRide.getVehicleModel());
-            binding.priceTextView.setText(String.format(Locale.getDefault(), "₹%.0f", currentRide.getPricePerSeat()));
-            binding.seatsAvailableTextView.setText(String.format(Locale.getDefault(), "%d seats", currentRide.getSeatsAvailable()));
+            setupUI();
+            checkSeatAvailability();
         }
 
-        binding.requestButton.setOnClickListener(v -> showPickupLocationDialog());
+        binding.requestButton.setOnClickListener(v -> {
+            if (!isRequestInProgress) {
+                showPickupLocationDialog();
+            }
+        });
+    }
+
+    private void setupUI() {
+        binding.driverNameTextView.setText(currentRide.getDriverName());
+        binding.vehicleModelTextView.setText(currentRide.getVehicleModel());
+        binding.priceTextView.setText(String.format(Locale.getDefault(), "₹%.0f", currentRide.getPricePerSeat()));
+        updateSeatsDisplay(currentRide.getSeatsAvailable());
+    }
+
+    private void updateSeatsDisplay(int availableSeats) {
+        binding.seatsAvailableTextView.setText(String.format(Locale.getDefault(), "%d seats", availableSeats));
+
+        // Disable book button if no seats available
+        if (availableSeats <= 0) {
+            binding.requestButton.setEnabled(false);
+            binding.requestButton.setText("No Seats Available");
+            binding.requestButton.setBackgroundColor(getColor(android.R.color.darker_gray));
+        } else {
+            binding.requestButton.setEnabled(true);
+            binding.requestButton.setText("Request Ride");
+            binding.requestButton.setBackgroundColor(getColor(R.color.primary_color));
+        }
+    }
+
+    private void checkSeatAvailability() {
+        if (currentRide.getRideId() != null) {
+            ridesRef.child(currentRide.getRideId()).child("seatsAvailable")
+                    .addValueEventListener(new ValueEventListener() {
+                        @Override
+                        public void onDataChange(DataSnapshot dataSnapshot) {
+                            Integer availableSeats = dataSnapshot.getValue(Integer.class);
+                            if (availableSeats != null) {
+                                currentRide.setSeatsAvailable(availableSeats);
+                                updateSeatsDisplay(availableSeats);
+                            }
+                        }
+
+                        @Override
+                        public void onCancelled(DatabaseError databaseError) {
+                            Log.e(TAG, "Error checking seat availability: " + databaseError.getMessage());
+                        }
+                    });
+        }
     }
 
     private void showPickupLocationDialog() {
+        // Prevent multiple dialogs
+        if (isRequestInProgress) {
+            return;
+        }
+
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
         builder.setTitle("Enter Pickup Location");
 
@@ -66,12 +122,21 @@ public class DetailsActivity extends AppCompatActivity {
         });
 
         builder.setNegativeButton("Cancel", (dialog, which) -> dialog.cancel());
-        builder.show();
+
+        // Prevent dialog from being dismissed by clicking outside
+        AlertDialog dialog = builder.create();
+        dialog.setCanceledOnTouchOutside(false);
+        dialog.show();
     }
 
     private void sendRideRequest(String pickupLocation) {
         if (currentRide == null) {
             Toast.makeText(this, "Ride information not available", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        // Check if request is already in progress
+        if (isRequestInProgress) {
             return;
         }
 
@@ -83,10 +148,39 @@ public class DetailsActivity extends AppCompatActivity {
             return;
         }
 
+        // Set request in progress flag
+        isRequestInProgress = true;
+
         // Disable button to prevent multiple clicks
         binding.requestButton.setEnabled(false);
         binding.requestButton.setText("Sending...");
 
+        // First check if seats are still available
+        ridesRef.child(currentRide.getRideId()).child("seatsAvailable")
+                .addListenerForSingleValueEvent(new ValueEventListener() {
+                    @Override
+                    public void onDataChange(DataSnapshot dataSnapshot) {
+                        Integer availableSeats = dataSnapshot.getValue(Integer.class);
+
+                        if (availableSeats == null || availableSeats <= 0) {
+                            Toast.makeText(DetailsActivity.this, "No seats available anymore", Toast.LENGTH_SHORT).show();
+                            resetRequestButton();
+                            return;
+                        }
+
+                        // Proceed with request
+                        proceedWithRideRequest(pickupLocation, currentUserId);
+                    }
+
+                    @Override
+                    public void onCancelled(DatabaseError databaseError) {
+                        Log.e(TAG, "Error checking seat availability", databaseError.toException());
+                        resetRequestButton();
+                    }
+                });
+    }
+
+    private void proceedWithRideRequest(String pickupLocation, String currentUserId) {
         // Get current user profile for request details
         db.collection("users").document(currentUserId).get()
                 .addOnCompleteListener(task -> {
@@ -147,11 +241,20 @@ public class DetailsActivity extends AppCompatActivity {
                             .addOnFailureListener(e -> {
                                 Log.e(TAG, "Error sending ride request", e);
                                 Toast.makeText(this, "Error sending request: " + e.getMessage(), Toast.LENGTH_SHORT).show();
-
-                                // Re-enable button on failure
-                                binding.requestButton.setEnabled(true);
-                                binding.requestButton.setText("Request Ride");
+                                resetRequestButton();
                             });
                 });
+    }
+
+    private void resetRequestButton() {
+        isRequestInProgress = false;
+        binding.requestButton.setEnabled(true);
+        binding.requestButton.setText("Request Ride");
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        isRequestInProgress = false;
     }
 }

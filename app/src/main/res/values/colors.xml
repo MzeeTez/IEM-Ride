@@ -8,4 +8,8 @@
     <color name="placeholder_color">#ad92c9</color>
     <color name="gray_text_color">#a0a0a0</color>
     <color name="separator_color">#4a4a4a</color>
+    <color name="card_background">#362348</color>
+    <color name="success_color">#4CAF50</color>
+    <color name="warning_color">#FF9800</color>
+    <color name="error_color">#F44336</color>
 </resources>

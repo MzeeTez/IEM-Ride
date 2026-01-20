@@ -20,7 +20,7 @@ import okhttp3.Response;
 public class NotificationHelper {
 
     private static final String TAG = "NotificationHelper";
-    private static final String FCM_SERVER_KEY = "BL64ng5CdmnIyArXVMKt--4bssAiQuSIig-vnd8cXKDoHLppKD7G7FXQZ8ur7PJJ7VBcS8Drxk87LiC4_DMDVjg"; // Replace with your key
+    private static final String FCM_SERVER_KEY = "YOUR_FCM_SERVER_KEY_HERE"; // Replace with your key
     private static final String FCM_URL = "https://fcm.googleapis.com/fcm/send";
 
     private static final MediaType JSON = MediaType.get("application/json; charset=utf-8");

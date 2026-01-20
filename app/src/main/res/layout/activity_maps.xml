@@ -1,188 +1,178 @@
 <?xml version="1.0" encoding="utf-8"?>
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
-    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@color/background_color"
-    tools:context=".MapsActivity">
+    android:background="@color/background_color">
 
-    <!-- Header -->
-    <RelativeLayout
-        android:id="@+id/headerLayout"
+    <!-- Top Info Panel -->
+    <LinearLayout
+        android:id="@+id/topInfoPanel"
         android:layout_width="match_parent"
-        android:layout_height="?attr/actionBarSize"
-        android:background="@color/input_background_color"
-        android:paddingStart="16dp"
-        android:paddingEnd="16dp">
+        android:layout_height="wrap_content"
+        android:background="@color/card_background"
+        android:orientation="vertical"
+        android:padding="16dp"
+        android:elevation="4dp">
 
-        <ImageButton
-            android:id="@+id/backButton"
-            android:layout_width="48dp"
-            android:layout_height="48dp"
-            android:background="?attr/selectableItemBackgroundBorderless"
-            android:src="@drawable/ic_arrow_back_ios_new"
-            android:layout_centerVertical="true"
-            app:tint="@color/white" />
+        <!-- Header with back button -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center_vertical">
 
+            <ImageButton
+                android:id="@+id/backButton"
+                android:layout_width="40dp"
+                android:layout_height="40dp"
+                android:background="?attr/selectableItemBackgroundBorderless"
+                android:src="@drawable/ic_arrow_back_ios_new"
+                app:tint="@color/white" />
+
+            <TextView
+                android:id="@+id/titleTextView"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:layout_marginStart="16dp"
+                android:text="Navigate to Pickup"
+                android:textColor="@color/white"
+                android:textSize="20sp"
+                android:textStyle="bold" />
+
+            <Button
+                android:id="@+id/openGoogleMapsButton"
+                android:layout_width="wrap_content"
+                android:layout_height="36dp"
+                android:background="@drawable/rounded_button_background"
+                android:text="Google Maps"
+                android:textColor="@color/white"
+                android:textSize="12sp"
+                android:paddingHorizontal="16dp" />
+
+        </LinearLayout>
+
+        <!-- Status -->
         <TextView
-            android:id="@+id/titleTextView"
+            android:id="@+id/statusTextView"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Track Your Ride"
-            android:textColor="@color/white"
-            android:textSize="20sp"
-            android:textStyle="bold"
-            android:layout_centerInParent="true" />
+            android:layout_marginTop="8dp"
+            android:text="Ride in Progress"
+            android:textColor="@color/primary_color"
+            android:textSize="14sp"
+            android:textStyle="bold" />
 
-    </RelativeLayout>
+        <!-- Pickup location -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:orientation="horizontal"
+            android:gravity="center_vertical">
+
+            <ImageView
+                android:layout_width="20dp"
+                android:layout_height="20dp"
+                android:src="@drawable/ic_location_on"
+                android:layout_marginEnd="8dp"
+                app:tint="@color/primary_color" />
+
+            <TextView
+                android:id="@+id/pickupLocationTextView"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="IEM College Gate, New Town"
+                android:textColor="@color/white"
+                android:textSize="14sp" />
+
+        </LinearLayout>
+
+        <!-- Passenger/Driver info -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:orientation="horizontal"
+            android:gravity="center_vertical">
+
+            <ImageView
+                android:layout_width="20dp"
+                android:layout_height="20dp"
+                android:src="@drawable/ic_profile"
+                android:layout_marginEnd="8dp"
+                app:tint="@color/gray_text_color" />
+
+            <TextView
+                android:id="@+id/passengerDriverTextView"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="Passenger: John Doe"
+                android:textColor="@color/gray_text_color"
+                android:textSize="14sp" />
+
+            <!-- Distance display -->
+            <TextView
+                android:id="@+id/distanceTextView"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="2.5 km away"
+                android:textColor="@color/primary_color"
+                android:textSize="12sp"
+                android:textStyle="bold"
+                android:visibility="gone" />
+
+        </LinearLayout>
+
+    </LinearLayout>
 
     <!-- Map View -->
     <org.osmdroid.views.MapView
         android:id="@+id/mapView"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:layout_below="@id/headerLayout"
-        android:layout_above="@id/bottomInfoCard" />
+        android:layout_below="@id/topInfoPanel" />
 
-    <!-- Bottom Info Card -->
-    <androidx.cardview.widget.CardView
-        android:id="@+id/bottomInfoCard"
+    <!-- Bottom Action Panel -->
+    <LinearLayout
+        android:id="@+id/bottomActionPanel"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_alignParentBottom="true"
-        android:layout_marginStart="16dp"
-        android:layout_marginEnd="16dp"
-        android:layout_marginBottom="16dp"
-        app:cardBackgroundColor="@color/input_background_color"
-        app:cardCornerRadius="12dp"
-        app:cardElevation="8dp">
+        android:background="@color/card_background"
+        android:orientation="horizontal"
+        android:padding="16dp"
+        android:elevation="4dp"
+        android:gravity="center">
 
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="vertical"
-            android:padding="16dp">
+        <Button
+            android:id="@+id/callButton"
+            android:layout_width="0dp"
+            android:layout_height="48dp"
+            android:layout_weight="1"
+            android:layout_marginEnd="8dp"
+            android:background="@drawable/rounded_button_background"
+            android:text="Call"
+            android:textColor="@color/white"
+            android:drawableStart="@drawable/rounded_button_background"
+            android:drawablePadding="8dp"
+            android:gravity="center" />
 
-            <!-- Status -->
-            <TextView
-                android:id="@+id/statusTextView"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Ride in Progress"
-                android:textColor="@color/primary_color"
-                android:textSize="16sp"
-                android:textStyle="bold"
-                android:layout_marginBottom="8dp" />
-
-            <!-- Pickup Location -->
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:orientation="horizontal"
-                android:gravity="center_vertical"
-                android:layout_marginBottom="8dp">
-
-                <ImageView
-                    android:layout_width="20dp"
-                    android:layout_height="20dp"
-                    android:src="@drawable/ic_location_on"
-                    android:layout_marginEnd="8dp"
-                    app:tint="@color/primary_color" />
-
-                <LinearLayout
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:orientation="vertical">
-
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="Pickup Location"
-                        android:textColor="@color/placeholder_color"
-                        android:textSize="12sp" />
-
-                    <TextView
-                        android:id="@+id/pickupLocationTextView"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:textColor="@color/white"
-                        android:textSize="16sp"
-                        tools:text="IEM College Gate" />
-
-                </LinearLayout>
-
-            </LinearLayout>
-
-            <!-- Passenger/Driver Info -->
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:orientation="horizontal"
-                android:gravity="center_vertical">
-
-                <ImageView
-                    android:layout_width="20dp"
-                    android:layout_height="20dp"
-                    android:src="@drawable/ic_avatar_placeholder"
-                    android:layout_marginEnd="8dp"
-                    app:tint="@color/primary_color" />
-
-                <TextView
-                    android:id="@+id/passengerDriverTextView"
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:textColor="@color/white"
-                    android:textSize="16sp"
-                    tools:text="Passenger: John Doe" />
-
-                <!-- Call Button -->
-                <ImageButton
-                    android:id="@+id/callButton"
-                    android:layout_width="40dp"
-                    android:layout_height="40dp"
-                    android:background="?attr/selectableItemBackgroundBorderless"
-                    android:src="@android:drawable/ic_menu_call"
-                    app:tint="@color/primary_color"
-                    android:contentDescription="Call" />
-
-            </LinearLayout>
-
-        </LinearLayout>
-
-    </androidx.cardview.widget.CardView>
-
-    <!-- Floating Action Buttons -->
-    <LinearLayout
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_alignParentEnd="true"
-        android:layout_above="@id/bottomInfoCard"
-        android:layout_marginEnd="16dp"
-        android:layout_marginBottom="24dp"
-        android:orientation="vertical">
-
-        <!-- My Location Button -->
-        <com.google.android.material.floatingactionbutton.FloatingActionButton
-            android:id="@+id/myLocationFab"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginBottom="16dp"
-            android:src="@android:drawable/ic_menu_mylocation"
-            app:backgroundTint="@color/primary_color"
-            app:tint="@color/white"
-            android:contentDescription="My Location" />
-
-        <!-- Navigation Button -->
-        <com.google.android.material.floatingactionbutton.FloatingActionButton
-            android:id="@+id/navigationFab"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:src="@android:drawable/ic_menu_directions"
-            app:backgroundTint="@color/primary_color"
-            app:tint="@color/white"
-            android:contentDescription="Navigation" />
+        <Button
+            android:id="@+id/messageButton"
+            android:layout_width="0dp"
+            android:layout_height="48dp"
+            android:layout_weight="1"
+            android:layout_marginStart="8dp"
+            android:background="@drawable/rounded_button_background"
+            android:text="Message"
+            android:textColor="@color/white"
+            android:drawableStart="@drawable/ic_star"
+            android:drawablePadding="8dp"
+            android:gravity="center" />
 
     </LinearLayout>
 

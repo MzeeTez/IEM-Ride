@@ -34,6 +34,9 @@ public class DashboardFragment extends Fragment {
     private ValueEventListener ridesListener;
     private static final String TAG = "DashboardFragment";
 
+    // 18 hours in milliseconds
+    private static final long EIGHTEEN_HOURS_MILLIS = 18 * 60 * 60 * 1000;
+
     @Nullable
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
@@ -65,8 +68,47 @@ public class DashboardFragment extends Fragment {
             startActivity(intent);
         });
 
-        // Load the rides from the database
+        // Clean up old rides and load current rides
+        cleanupOldRides();
         loadRides();
+    }
+
+    private void cleanupOldRides() {
+        long currentTime = System.currentTimeMillis();
+        long cutoffTime = currentTime - EIGHTEEN_HOURS_MILLIS;
+
+        ridesRef.orderByChild("timestamp").endAt(cutoffTime).addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+                for (DataSnapshot rideSnapshot : dataSnapshot.getChildren()) {
+                    try {
+                        Object timestampObj = rideSnapshot.child("timestamp").getValue();
+                        Long timestamp = null;
+
+                        if (timestampObj instanceof Long) {
+                            timestamp = (Long) timestampObj;
+                        } else if (timestampObj instanceof Double) {
+                            timestamp = ((Double) timestampObj).longValue();
+                        }
+
+                        // Delete rides older than 18 hours
+                        if (timestamp != null && timestamp < cutoffTime) {
+                            Log.d(TAG, "Deleting old ride: " + rideSnapshot.getKey());
+                            rideSnapshot.getRef().removeValue()
+                                    .addOnSuccessListener(aVoid -> Log.d(TAG, "Old ride deleted successfully"))
+                                    .addOnFailureListener(e -> Log.e(TAG, "Error deleting old ride", e));
+                        }
+                    } catch (Exception e) {
+                        Log.e(TAG, "Error processing ride for cleanup: " + e.getMessage());
+                    }
+                }
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError databaseError) {
+                Log.e(TAG, "Error during cleanup: " + databaseError.getMessage());
+            }
+        });
     }
 
     private void loadRides() {
@@ -77,14 +119,24 @@ public class DashboardFragment extends Fragment {
             @Override
             public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
                 rideList.clear();
+                long currentTime = System.currentTimeMillis();
+                long cutoffTime = currentTime - EIGHTEEN_HOURS_MILLIS;
 
                 for (DataSnapshot rideSnapshot : dataSnapshot.getChildren()) {
                     try {
                         Ride ride = rideSnapshot.getValue(Ride.class);
                         if (ride != null) {
-                            // Set the ride ID from the key
-                            ride.setRideId(rideSnapshot.getKey());
-                            rideList.add(ride);
+                            // Check if ride is still valid (not older than 18 hours)
+                            Long timestamp = getTimestampAsLong(ride.getTimestamp());
+
+                            if (timestamp != null && timestamp >= cutoffTime) {
+                                // Set the ride ID from the key
+                                ride.setRideId(rideSnapshot.getKey());
+                                rideList.add(ride);
+                            } else if (timestamp != null && timestamp < cutoffTime) {
+                                // Delete old ride
+                                rideSnapshot.getRef().removeValue();
+                            }
                         }
                     } catch (Exception e) {
                         Log.e(TAG, "Error parsing ride data: " + e.getMessage());
